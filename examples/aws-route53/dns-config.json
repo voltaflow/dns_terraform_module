@@ -1,0 +1,94 @@
+{
+  "primary": {
+    "domain": "example.com",
+    "comment": "Primary domain for example.com",
+    "tags": {
+      "Domain": "example.com",
+      "Environment": "production"
+    },
+    "records": [
+      {
+        "name": "",
+        "type": "A",
+        "value": "192.0.2.1",
+        "ttl": 300
+      },
+      {
+        "name": "www",
+        "type": "A",
+        "value": "192.0.2.1",
+        "ttl": 300
+      },
+      {
+        "name": "mail",
+        "type": "A",
+        "value": "192.0.2.10",
+        "ttl": 300
+      },
+      {
+        "name": "",
+        "type": "MX",
+        "value": "mail.example.com",
+        "ttl": 300,
+        "priority": 10
+      },
+      {
+        "name": "",
+        "type": "TXT",
+        "value": "\"v=spf1 include:_spf.example.com ~all\"",
+        "ttl": 300
+      },
+      {
+        "name": "_dmarc",
+        "type": "TXT",
+        "value": "\"v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com\"",
+        "ttl": 300
+      },
+      {
+        "name": "api",
+        "type": "CNAME",
+        "value": "api.service.example.com",
+        "ttl": 300
+      },
+      {
+        "name": "cdn",
+        "type": "A",
+        "value": "",
+        "ttl": 300,
+        "alias": {
+          "name": "d111111abcdef8.cloudfront.net",
+          "zone_id": "Z2FDTNDATAQYW2",
+          "evaluate_target_health": false
+        }
+      }
+    ]
+  },
+  "staging": {
+    "domain": "staging.example.com",
+    "comment": "Staging environment",
+    "tags": {
+      "Domain": "staging.example.com",
+      "Environment": "staging"
+    },
+    "records": [
+      {
+        "name": "",
+        "type": "A",
+        "value": "203.0.113.50",
+        "ttl": 300
+      },
+      {
+        "name": "www",
+        "type": "A",
+        "value": "203.0.113.50",
+        "ttl": 300
+      },
+      {
+        "name": "api",
+        "type": "A",
+        "value": "203.0.113.51",
+        "ttl": 300
+      }
+    ]
+  }
+}

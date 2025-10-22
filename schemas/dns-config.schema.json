@@ -1,0 +1,187 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/voltaflow/dns-terraform-module/schemas/dns-config.schema.json",
+  "title": "DNS Configuration Schema",
+  "description": "Schema for validating DNS zone and record configurations for the multi-provider DNS Terraform module",
+  "type": "object",
+  "patternProperties": {
+    "^[a-zA-Z0-9_-]+$": {
+      "type": "object",
+      "required": ["domain", "records"],
+      "properties": {
+        "domain": {
+          "type": "string",
+          "pattern": "^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$",
+          "description": "Fully qualified domain name (FQDN)"
+        },
+        "comment": {
+          "type": "string",
+          "description": "Optional comment for the DNS zone",
+          "maxLength": 256
+        },
+        "tags": {
+          "type": "object",
+          "description": "Key-value tags for the zone (AWS/Cloudflare)",
+          "patternProperties": {
+            "^[a-zA-Z0-9_-]+$": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "records": {
+          "type": "array",
+          "description": "List of DNS records for this zone",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "type", "value"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Record name (subdomain). Use empty string for apex (@)"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "A", "AAAA", "CAA", "CNAME", "MX", "NAPTR", "NS",
+                  "PTR", "SOA", "SPF", "SRV", "TXT", "ALIAS",
+                  "HTTPS", "LOC", "CERT", "DNSKEY", "DS",
+                  "SMIMEA", "SSHFP", "SVCB", "TLSA", "URI"
+                ],
+                "description": "DNS record type"
+              },
+              "value": {
+                "type": "string",
+                "description": "Record value (IP, domain, text, etc.)"
+              },
+              "ttl": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 86400,
+                "default": 300,
+                "description": "Time to live in seconds (1-86400)"
+              },
+              "priority": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535,
+                "description": "Priority for MX and SRV records"
+              },
+              "proxied": {
+                "type": "boolean",
+                "default": false,
+                "description": "Enable Cloudflare proxy (orange cloud) - only for A, AAAA, CNAME"
+              },
+              "alias": {
+                "type": "object",
+                "description": "AWS Route53 alias record configuration",
+                "required": ["name", "zone_id"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Target resource domain name"
+                  },
+                  "zone_id": {
+                    "type": "string",
+                    "description": "Hosted zone ID of the target resource"
+                  },
+                  "evaluate_target_health": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to evaluate target health"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": { "type": { "const": "MX" } }
+                },
+                "then": {
+                  "required": ["priority"],
+                  "properties": {
+                    "priority": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 65535
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": { "type": { "const": "SRV" } }
+                },
+                "then": {
+                  "required": ["priority"],
+                  "properties": {
+                    "priority": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 65535
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": { "proxied": { "const": true } }
+                },
+                "then": {
+                  "properties": {
+                    "type": {
+                      "enum": ["A", "AAAA", "CNAME"]
+                    },
+                    "ttl": {
+                      "const": 1,
+                      "description": "TTL must be 1 (automatic) when proxied is true"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "minProperties": 1,
+  "examples": [
+    {
+      "primary": {
+        "domain": "example.com",
+        "comment": "Primary domain",
+        "tags": {
+          "Environment": "production"
+        },
+        "records": [
+          {
+            "name": "",
+            "type": "A",
+            "value": "192.0.2.1",
+            "ttl": 300
+          },
+          {
+            "name": "www",
+            "type": "A",
+            "value": "192.0.2.1",
+            "ttl": 300
+          },
+          {
+            "name": "",
+            "type": "MX",
+            "value": "mail.example.com",
+            "ttl": 300,
+            "priority": 10
+          }
+        ]
+      }
+    }
+  ]
+}

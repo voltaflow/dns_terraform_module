@@ -1,0 +1,58 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform/
+.terraform.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Archivos de plan
+*.tfplan
+
+# CLI configuration files
+.terraformrc
+terraform.rc
+
+# Exports y backups
+*-dns-export.json
+*.backup
+migration-*/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Archivos de log
+*.log
+
+# Variables sensibles
+secrets.auto.tfvars
+secrets.tfvars
+.env
+.envrc
+
+# Archivos temporales
+*.tmp
+*.temp

@@ -1,0 +1,133 @@
+{
+  "primary": {
+    "domain": "example.com",
+    "records": [
+      {
+        "name": "",
+        "type": "A",
+        "value": "192.0.2.1",
+        "ttl": 1,
+        "proxied": true
+      },
+      {
+        "name": "www",
+        "type": "A",
+        "value": "192.0.2.1",
+        "ttl": 1,
+        "proxied": true
+      },
+      {
+        "name": "blog",
+        "type": "CNAME",
+        "value": "example.com",
+        "ttl": 1,
+        "proxied": true
+      },
+      {
+        "name": "direct",
+        "type": "A",
+        "value": "192.0.2.50",
+        "ttl": 300,
+        "proxied": false
+      },
+      {
+        "name": "",
+        "type": "MX",
+        "value": "mail.example.com",
+        "ttl": 300,
+        "priority": 10,
+        "proxied": false
+      },
+      {
+        "name": "",
+        "type": "MX",
+        "value": "mail2.example.com",
+        "ttl": 300,
+        "priority": 20,
+        "proxied": false
+      },
+      {
+        "name": "",
+        "type": "TXT",
+        "value": "v=spf1 include:_spf.example.com ~all",
+        "ttl": 300,
+        "proxied": false
+      },
+      {
+        "name": "_dmarc",
+        "type": "TXT",
+        "value": "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com",
+        "ttl": 300,
+        "proxied": false
+      },
+      {
+        "name": "default._domainkey",
+        "type": "TXT",
+        "value": "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC...",
+        "ttl": 300,
+        "proxied": false
+      },
+      {
+        "name": "_acme-challenge",
+        "type": "TXT",
+        "value": "verification-string-here",
+        "ttl": 120,
+        "proxied": false
+      },
+      {
+        "name": "",
+        "type": "CAA",
+        "value": "0 issue \"letsencrypt.org\"",
+        "ttl": 300,
+        "proxied": false
+      },
+      {
+        "name": "api",
+        "type": "A",
+        "value": "192.0.2.100",
+        "ttl": 1,
+        "proxied": true
+      },
+      {
+        "name": "cdn",
+        "type": "CNAME",
+        "value": "cdn.example.com",
+        "ttl": 1,
+        "proxied": true
+      }
+    ]
+  },
+  "app": {
+    "domain": "app.example.com",
+    "records": [
+      {
+        "name": "",
+        "type": "A",
+        "value": "203.0.113.10",
+        "ttl": 1,
+        "proxied": true
+      },
+      {
+        "name": "www",
+        "type": "CNAME",
+        "value": "app.example.com",
+        "ttl": 1,
+        "proxied": true
+      },
+      {
+        "name": "api",
+        "type": "A",
+        "value": "203.0.113.11",
+        "ttl": 1,
+        "proxied": true
+      },
+      {
+        "name": "ws",
+        "type": "A",
+        "value": "203.0.113.12",
+        "ttl": 300,
+        "proxied": false
+      }
+    ]
+  }
+}
