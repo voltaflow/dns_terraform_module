@@ -10,6 +10,10 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = ">= 4.0.0"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = ">= 3.0.0"
+    }
     vercel = {
       source  = "vercel/vercel"
       version = ">= 1.0.0"

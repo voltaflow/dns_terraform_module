@@ -46,15 +46,15 @@ module "vercel" {
 # INFORMATION AND DEBUGGING
 # ============================================================================
 
-# Metadata output for debugging
-resource "terraform_data" "module_info" {
-  input = {
+# Preconditions to fail fast when required inputs are missing
+resource "null_resource" "module_preconditions" {
+  triggers = {
     provider           = var.provider_type
-    zones_count        = local.module_metadata.zones_count
-    total_records      = local.module_metadata.total_records
-    config_source      = var.dns_config_file != null ? "JSON file" : "Terraform variables"
-    validation_enabled = var.enable_validation
-    has_warnings       = local.module_metadata.has_validation_warnings
+    zones_count        = tostring(local.module_metadata.zones_count)
+    total_records      = tostring(local.module_metadata.total_records)
+    config_source      = var.dns_config_file != null ? var.dns_config_file : "variables"
+    validation_enabled = tostring(var.enable_validation)
+    has_warnings       = tostring(local.module_metadata.has_validation_warnings)
   }
 
   lifecycle {
