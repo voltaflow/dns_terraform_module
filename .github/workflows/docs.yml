@@ -1,0 +1,287 @@
+# ============================================================================
+# DOCUMENTATION AUTOMATION WORKFLOW
+# ============================================================================
+# This workflow automatically generates and validates documentation for
+# the Terraform module using terraform-docs.
+#
+# Triggers:
+#   - Pull requests to any branch
+#   - Push to main branch
+# ============================================================================
+
+name: Documentation
+
+on:
+  pull_request:
+    branches:
+      - '*'
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Cancel in-progress runs when a new run is triggered
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # ============================================================================
+  # GENERATE TERRAFORM DOCS
+  # ============================================================================
+  terraform-docs:
+    name: Generate Terraform Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate docs for root module
+        uses: terraform-docs/gh-actions@v1.1.0
+        with:
+          working-dir: .
+          output-file: README.md
+          output-method: inject
+          git-push: false
+          config-file: .terraform-docs.yml
+
+      - name: Generate docs for AWS Route53 submodule
+        uses: terraform-docs/gh-actions@v1.1.0
+        with:
+          working-dir: modules/aws-route53
+          output-file: README.md
+          output-method: inject
+          git-push: false
+
+      - name: Generate docs for Cloudflare submodule
+        uses: terraform-docs/gh-actions@v1.1.0
+        with:
+          working-dir: modules/cloudflare
+          output-file: README.md
+          output-method: inject
+          git-push: false
+
+      - name: Generate docs for Vercel submodule
+        uses: terraform-docs/gh-actions@v1.1.0
+        with:
+          working-dir: modules/vercel
+          output-file: README.md
+          output-method: inject
+          git-push: false
+
+      - name: Check for documentation changes
+        id: docs-changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "✅ Documentation is up to date"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "📝 Documentation has changes"
+            git diff --stat
+          fi
+
+      - name: Commit documentation changes
+        if: steps.docs-changes.outputs.changed == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "docs: auto-generate terraform-docs"
+          git push
+
+      - name: Create PR comment with docs diff
+        if: steps.docs-changes.outputs.changed == 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const diffOutput = require('child_process')
+              .execSync('git diff --stat')
+              .toString();
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 📝 Documentation Update Needed\n\nThe terraform-docs generator found differences:\n\n\`\`\`\n${diffOutput}\`\`\`\n\nPlease run \`terraform-docs\` locally and commit the changes.`
+            })
+
+  # ============================================================================
+  # VALIDATE JSON SCHEMA
+  # ============================================================================
+  validate-schema:
+    name: Validate JSON Schema
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install jsonschema check-jsonschema
+
+      - name: Validate JSON Schema syntax
+        run: |
+          check-jsonschema --check-metaschema schemas/dns-config.schema.json
+
+      - name: Validate example configs against schema
+        run: |
+          for config in examples/*/dns-config.json; do
+            echo "Validating $config against schema"
+            check-jsonschema --schemafile schemas/dns-config.schema.json "$config"
+          done
+
+  # ============================================================================
+  # CHECK README LINKS
+  # ============================================================================
+  check-links:
+    name: Check Documentation Links
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check links in README files
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'no'
+          config-file: '.markdown-link-check.json'
+        continue-on-error: true
+
+  # ============================================================================
+  # GENERATE CHANGELOG PREVIEW
+  # ============================================================================
+  changelog-preview:
+    name: Generate Changelog Preview
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate conventional changelog
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          skip-version-file: true
+          skip-commit: true
+          skip-tag: true
+          output-file: false
+
+      - name: Comment changelog preview on PR
+        if: steps.changelog.outputs.changelog != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const changelog = `${{ steps.changelog.outputs.changelog }}`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 📋 Changelog Preview\n\n${changelog}`
+            })
+
+  # ============================================================================
+  # DOCUMENTATION COVERAGE
+  # ============================================================================
+  doc-coverage:
+    name: Documentation Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check documentation coverage
+        run: |
+          echo "## Documentation Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Check if all .tf files have corresponding documentation
+          missing_docs=0
+
+          # Check root module
+          if [ ! -f "README.md" ]; then
+            echo "❌ Missing README.md in root module" >> $GITHUB_STEP_SUMMARY
+            missing_docs=$((missing_docs + 1))
+          else
+            echo "✅ Root module README.md exists" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Check submodules
+          for module in modules/*/; do
+            module_name=$(basename "$module")
+            if [ ! -f "${module}README.md" ]; then
+              echo "❌ Missing README.md in $module_name" >> $GITHUB_STEP_SUMMARY
+              missing_docs=$((missing_docs + 1))
+            else
+              echo "✅ $module_name README.md exists" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          # Check examples
+          for example in examples/*/; do
+            example_name=$(basename "$example")
+            if [ ! -f "${example}README.md" ]; then
+              echo "⚠️  Missing README.md in example: $example_name" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ $example_name README.md exists" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ $missing_docs -gt 0 ]; then
+            echo "⚠️  **$missing_docs module(s) missing documentation**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **All modules have documentation!**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # ============================================================================
+  # DOCUMENTATION SUMMARY
+  # ============================================================================
+  docs-summary:
+    name: Documentation Summary
+    runs-on: ubuntu-latest
+    needs: [terraform-docs, validate-schema, check-links, doc-coverage]
+    if: always()
+
+    steps:
+      - name: Generate documentation summary
+        run: |
+          echo "## Documentation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Terraform Docs | ${{ needs.terraform-docs.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| JSON Schema | ${{ needs.validate-schema.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Link Check | ${{ needs.check-links.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Doc Coverage | ${{ needs.doc-coverage.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.terraform-docs.result }}" != "success" ]] || \
+             [[ "${{ needs.validate-schema.result }}" != "success" ]] || \
+             [[ "${{ needs.doc-coverage.result }}" != "success" ]]; then
+            echo "❌ **Documentation checks failed!**" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          echo "✅ **All documentation checks passed!**" >> $GITHUB_STEP_SUMMARY

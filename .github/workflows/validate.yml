@@ -1,0 +1,222 @@
+# ============================================================================
+# TERRAFORM VALIDATION & FORMATTING WORKFLOW
+# ============================================================================
+# This workflow validates Terraform syntax, formatting, and performs basic
+# validation checks on all .tf files in the repository.
+#
+# Triggers:
+#   - Pull requests to any branch
+#   - Push to main branch
+# ============================================================================
+
+name: Terraform Validation
+
+on:
+  pull_request:
+    branches:
+      - '*'
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Cancel in-progress runs when a new run is triggered
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # FORMAT CHECK
+  # ============================================================================
+  format:
+    name: Check Terraform Formatting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      - name: Check formatting (root module)
+        id: fmt_root
+        run: terraform fmt -check -recursive -diff
+        continue-on-error: true
+
+      - name: Check formatting (examples)
+        id: fmt_examples
+        run: |
+          for example in examples/*/; do
+            echo "Checking format in $example"
+            terraform fmt -check -diff "$example"
+          done
+        continue-on-error: true
+
+      - name: Format check summary
+        if: steps.fmt_root.outcome == 'failure' || steps.fmt_examples.outcome == 'failure'
+        run: |
+          echo "❌ Terraform formatting check failed!"
+          echo "Run 'terraform fmt -recursive' to fix formatting issues."
+          exit 1
+
+  # ============================================================================
+  # VALIDATE ROOT MODULE
+  # ============================================================================
+  validate-root:
+    name: Validate Root Module
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        terraform_version: ["1.3.0", "1.4.0", "1.5.0", "latest"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform ${{ matrix.terraform_version }}
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ matrix.terraform_version }}
+
+      - name: Terraform Init
+        run: terraform init -backend=false
+
+      - name: Terraform Validate
+        run: terraform validate
+
+  # ============================================================================
+  # VALIDATE SUBMODULES
+  # ============================================================================
+  validate-submodules:
+    name: Validate Submodules
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        module: ["aws-route53", "cloudflare", "vercel"]
+        terraform_version: ["latest"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ matrix.terraform_version }}
+
+      - name: Terraform Init - ${{ matrix.module }}
+        working-directory: modules/${{ matrix.module }}
+        run: terraform init -backend=false
+
+      - name: Terraform Validate - ${{ matrix.module }}
+        working-directory: modules/${{ matrix.module }}
+        run: terraform validate
+
+  # ============================================================================
+  # VALIDATE EXAMPLES
+  # ============================================================================
+  validate-examples:
+    name: Validate Examples
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        example: ["aws-route53", "cloudflare", "vercel"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      - name: Terraform Init - ${{ matrix.example }}
+        working-directory: examples/${{ matrix.example }}
+        run: terraform init -backend=false
+
+      - name: Terraform Validate - ${{ matrix.example }}
+        working-directory: examples/${{ matrix.example }}
+        run: terraform validate
+
+  # ============================================================================
+  # FILE CHECKS
+  # ============================================================================
+  file-checks:
+    name: Additional File Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for trailing whitespace
+        run: |
+          if grep -r '[[:blank:]]$' --include='*.tf' --include='*.md' .; then
+            echo "❌ Found trailing whitespace in files"
+            exit 1
+          fi
+          echo "✅ No trailing whitespace found"
+
+      - name: Check for files without newline at EOF
+        run: |
+          found=0
+          while IFS= read -r -d '' file; do
+            if [ -n "$(tail -c 1 "$file")" ]; then
+              echo "❌ No newline at EOF: $file"
+              found=1
+            fi
+          done < <(find . -name '*.tf' -o -name '*.md' -print0)
+
+          if [ $found -eq 1 ]; then
+            exit 1
+          fi
+          echo "✅ All files end with newline"
+
+      - name: Validate JSON files
+        run: |
+          for json_file in $(find . -name '*.json' -not -path './.*' -not -path './node_modules/*'); do
+            echo "Validating $json_file"
+            jq empty "$json_file" || exit 1
+          done
+          echo "✅ All JSON files are valid"
+
+  # ============================================================================
+  # SUMMARY
+  # ============================================================================
+  validation-summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: [format, validate-root, validate-submodules, validate-examples, file-checks]
+    if: always()
+
+    steps:
+      - name: Check validation results
+        run: |
+          echo "## Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Format: ${{ needs.format.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Root Module: ${{ needs.validate-root.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Submodules: ${{ needs.validate-submodules.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Examples: ${{ needs.validate-examples.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- File Checks: ${{ needs.file-checks.result }}" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.format.result }}" != "success" ]] || \
+             [[ "${{ needs.validate-root.result }}" != "success" ]] || \
+             [[ "${{ needs.validate-submodules.result }}" != "success" ]] || \
+             [[ "${{ needs.validate-examples.result }}" != "success" ]] || \
+             [[ "${{ needs.file-checks.result }}" != "success" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Validation failed! Please review the errors above.**" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **All validation checks passed!**" >> $GITHUB_STEP_SUMMARY

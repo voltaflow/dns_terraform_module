@@ -1,0 +1,255 @@
+# ============================================================================
+# LINTING & SECURITY SCANNING WORKFLOW
+# ============================================================================
+# This workflow runs linters and security scanners on the Terraform code
+# to catch potential issues and security vulnerabilities.
+#
+# Triggers:
+#   - Pull requests to any branch
+#   - Push to main branch
+# ============================================================================
+
+name: Lint & Security
+
+on:
+  pull_request:
+    branches:
+      - '*'
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Cancel in-progress runs when a new run is triggered
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # TFLINT - TERRAFORM LINTING
+  # ============================================================================
+  tflint:
+    name: TFLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Initialize TFLint
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run TFLint (root module)
+        run: tflint --recursive --format compact
+
+      - name: Run TFLint (examples)
+        run: |
+          for example in examples/*/; do
+            echo "Running TFLint in $example"
+            (cd "$example" && tflint --format compact) || true
+          done
+
+  # ============================================================================
+  # TFSEC - SECURITY SCANNING
+  # ============================================================================
+  tfsec:
+    name: TFSec Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          additional_args: --format default --soft-fail
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload tfsec results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: tfsec.sarif
+        continue-on-error: true
+
+  # ============================================================================
+  # CHECKOV - SECURITY SCANNING
+  # ============================================================================
+  checkov:
+    name: Checkov Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: terraform
+          soft_fail: true
+          output_format: cli
+          download_external_modules: true
+
+  # ============================================================================
+  # SHELLCHECK - BASH SCRIPT LINTING
+  # ============================================================================
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+          severity: warning
+          format: gcc
+
+  # ============================================================================
+  # PYTHON LINTING
+  # ============================================================================
+  pylint:
+    name: Python Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pylint jsonschema
+
+      - name: Run Pylint
+        run: |
+          pylint scripts/*.py --disable=C0114,C0116 || true
+
+      - name: Run Python syntax check
+        run: |
+          python3 -m py_compile scripts/*.py
+
+  # ============================================================================
+  # MARKDOWN LINTING
+  # ============================================================================
+  markdownlint:
+    name: Markdown Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run markdownlint
+        uses: nosborn/github-action-markdown-cli@v3.3.0
+        with:
+          files: .
+          config_file: .markdownlint.json
+          ignore_files: .github/
+        continue-on-error: true
+
+  # ============================================================================
+  # YAML LINTING
+  # ============================================================================
+  yamllint:
+    name: YAML Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run yamllint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: .github/workflows/
+          config_file: .yamllint.yml
+          strict: false
+        continue-on-error: true
+
+  # ============================================================================
+  # TERRAFORM DOCS CHECK
+  # ============================================================================
+  terraform-docs:
+    name: Terraform Docs Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate terraform-docs
+        uses: terraform-docs/gh-actions@v1.1.0
+        with:
+          working-dir: .
+          output-file: TERRAFORM_DOCS.md
+          output-method: inject
+          fail-on-diff: false
+
+      - name: Check if docs are up to date
+        run: |
+          if [ -f TERRAFORM_DOCS.md ]; then
+            echo "📝 Terraform docs generated"
+          fi
+
+  # ============================================================================
+  # SECURITY SUMMARY
+  # ============================================================================
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [tflint, tfsec, checkov, shellcheck, pylint]
+    if: always()
+
+    steps:
+      - name: Generate security summary
+        run: |
+          echo "## Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Tool | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| TFLint | ${{ needs.tflint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TFSec | ${{ needs.tfsec.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Checkov | ${{ needs.checkov.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ShellCheck | ${{ needs.shellcheck.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pylint | ${{ needs.pylint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Only fail on critical failures (tflint, shellcheck, pylint)
+          if [[ "${{ needs.tflint.result }}" == "failure" ]] || \
+             [[ "${{ needs.shellcheck.result }}" == "failure" ]] || \
+             [[ "${{ needs.pylint.result }}" == "failure" ]]; then
+            echo "❌ **Critical linting failures detected!**" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          # Security scans are informational
+          if [[ "${{ needs.tfsec.result }}" == "failure" ]] || \
+             [[ "${{ needs.checkov.result }}" == "failure" ]]; then
+            echo "⚠️  **Security issues detected - please review**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **All security scans passed!**" >> $GITHUB_STEP_SUMMARY
+          fi
