@@ -38,6 +38,13 @@ locals {
 # ============================================================================
 # VERCEL DNS RECORDS
 # ============================================================================
+# Note: Vercel provider has strict validation for mx_priority that prevents
+# conditional usage. MX priority should be included in the value field in the
+# format "priority value" (e.g., "10 mail.example.com")
+#
+# For now, we use a single resource and omit mx_priority to avoid validation
+# errors. Users should include priority in the MX record value.
+# ============================================================================
 
 resource "vercel_dns_record" "this" {
   for_each = local.records_map
@@ -45,25 +52,8 @@ resource "vercel_dns_record" "this" {
   domain  = each.value.domain
   name    = each.value.name
   type    = each.value.type
-  value   = each.value.value
+  # For MX records, include priority in value: "10 mail.example.com"
+  value   = each.value.type == "MX" && each.value.priority != null ? "${each.value.priority} ${each.value.value}" : each.value.value
   ttl     = each.value.ttl
   team_id = each.value.team_id
-
-  # MX records require special configuration
-  dynamic "mx_priority" {
-    for_each = each.value.type == "MX" && each.value.priority != null ? [1] : []
-    content {
-      priority = each.value.priority
-    }
-  }
-
-  # SRV records require special configuration
-  dynamic "srv" {
-    for_each = each.value.type == "SRV" && each.value.priority != null ? [1] : []
-    content {
-      priority = each.value.priority
-      # Note: Vercel may require additional fields for SRV
-      # weight and port should come in the value or be parsed
-    }
-  }
 }

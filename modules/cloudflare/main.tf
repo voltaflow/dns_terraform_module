@@ -5,10 +5,19 @@
 resource "cloudflare_zone" "this" {
   for_each = var.zones
 
-  account_id = each.value.zone_config.account_id
-  zone       = each.value.domain
-  plan       = each.value.zone_config.plan
-  type       = each.value.zone_config.type
+  # Cloudflare provider v4.0+ requires nested account block
+  account = {
+    id = each.value.zone_config.account_id
+  }
+
+  # Zone name (domain name) - 'zone' attribute renamed to 'name' in v4.0+
+  name = each.value.domain
+
+  # Zone type: full or partial
+  type = each.value.zone_config.type
+
+  # Note: 'plan' attribute is deprecated in Cloudflare provider v4.0+
+  # Zone plan is now managed automatically by Cloudflare
 }
 
 # ============================================================================
@@ -40,19 +49,16 @@ locals {
   }
 }
 
-resource "cloudflare_record" "this" {
+resource "cloudflare_dns_record" "this" {
   for_each = local.records_map
 
   zone_id  = each.value.zone_id
   name     = each.value.name
   type     = each.value.type
-  value    = each.value.value
-  ttl      = each.value.proxied ? 1 : each.value.ttl  # TTL must be 1 if proxied
+  content  = each.value.value
+  ttl      = each.value.proxied ? 1 : each.value.ttl # TTL must be 1 if proxied
   priority = each.value.priority
 
   # Proxy only works with A, AAAA and CNAME
   proxied = contains(["A", "AAAA", "CNAME"], each.value.type) ? each.value.proxied : false
-
-  # Allow overwriting existing records during import
-  allow_overwrite = true
 }

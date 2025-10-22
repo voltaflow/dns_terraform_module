@@ -19,10 +19,10 @@ output "zones" {
   value = {
     for k, zone in cloudflare_zone.this :
     k => {
-      zone_id       = zone.id
-      name_servers  = zone.name_servers
-      domain        = zone.zone
-      status        = zone.status
+      zone_id          = zone.id
+      name_servers     = zone.name_servers
+      domain           = zone.zone
+      status           = zone.status
       verification_key = zone.verification_key
     }
   }
@@ -31,7 +31,7 @@ output "zones" {
 output "record_hostnames" {
   description = "Hostnames of all created records"
   value = {
-    for k, record in cloudflare_record.this :
+    for k, record in cloudflare_dns_record.this :
     k => record.hostname
   }
 }
@@ -39,7 +39,7 @@ output "record_hostnames" {
 output "proxied_records" {
   description = "Records that are using Cloudflare proxy"
   value = {
-    for k, record in cloudflare_record.this :
+    for k, record in cloudflare_dns_record.this :
     k => record.proxied
     if record.proxied
   }

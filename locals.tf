@@ -62,11 +62,12 @@ locals {
   ]) : []
 
   # Warning message for unsupported records
-  validation_warnings = length(local.unsupported_records) > 0 ? join("\n", [
-    "⚠️  WARNING: The following records are not supported by ${var.provider_type}:",
+  validation_warnings = length(local.unsupported_records) > 0 ? join("\n", concat([
+    "⚠️  WARNING: The following records are not supported by ${var.provider_type}:"
+    ], [
     for rec in local.unsupported_records :
     "   - ${rec.zone}/${rec.record} (type: ${rec.type})"
-  ]) : ""
+  ])) : ""
 
   # ============================================================================
   # PROVIDER-SPECIFIC TRANSFORMATIONS
@@ -75,13 +76,13 @@ locals {
   # For AWS Route53: group records by zone
   aws_zones = {
     for zone_key, zone in local.dns_zones_normalized : zone_key => {
-      domain      = zone.domain
-      comment     = zone.comment
-      tags        = zone.tags
-      records     = zone.records
+      domain  = zone.domain
+      comment = zone.comment
+      tags    = zone.tags
+      records = zone.records
       zone_config = {
-        force_destroy      = var.aws_force_destroy
-        delegation_set_id  = var.aws_delegation_set_id
+        force_destroy     = var.aws_force_destroy
+        delegation_set_id = var.aws_delegation_set_id
       }
     }
   }
@@ -89,8 +90,8 @@ locals {
   # For Cloudflare: include plan and type configuration
   cloudflare_zones = {
     for zone_key, zone in local.dns_zones_normalized : zone_key => {
-      domain      = zone.domain
-      records     = zone.records
+      domain  = zone.domain
+      records = zone.records
       zone_config = {
         account_id = var.cloudflare_account_id
         plan       = var.cloudflare_zone_plan
@@ -102,8 +103,8 @@ locals {
   # For Vercel: simplify structure
   vercel_zones = {
     for zone_key, zone in local.dns_zones_normalized : zone_key => {
-      domain      = zone.domain
-      records     = zone.records
+      domain  = zone.domain
+      records = zone.records
       zone_config = {
         team_id = var.vercel_team_id
       }
@@ -115,9 +116,9 @@ locals {
   # ============================================================================
 
   module_metadata = {
-    provider         = var.provider_type
-    zones_count      = length(local.dns_zones_normalized)
-    total_records    = sum([for z in local.dns_zones_normalized : length(z.records)])
+    provider                = var.provider_type
+    zones_count             = length(local.dns_zones_normalized)
+    total_records           = sum([for z in local.dns_zones_normalized : length(z.records)])
     has_validation_warnings = length(local.unsupported_records) > 0
   }
 }
