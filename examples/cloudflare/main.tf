@@ -42,7 +42,7 @@ module "dns_from_json" {
 
   # General options
   enable_validation = true
-  default_ttl      = 300
+  default_ttl       = 300
 
   tags = {
     Environment = "example"

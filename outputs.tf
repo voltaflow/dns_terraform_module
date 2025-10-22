@@ -70,12 +70,12 @@ output "vercel_record_ids" {
 output "module_info" {
   description = "Module information and statistics"
   value = {
-    provider          = var.provider_type
-    zones_count       = local.module_metadata.zones_count
-    total_records     = local.module_metadata.total_records
-    config_source     = var.dns_config_file != null ? "JSON file: ${var.dns_config_file}" : "Terraform variables"
+    provider           = var.provider_type
+    zones_count        = local.module_metadata.zones_count
+    total_records      = local.module_metadata.total_records
+    config_source      = var.dns_config_file != null ? "JSON file: ${var.dns_config_file}" : "Terraform variables"
     validation_enabled = var.enable_validation
-    has_warnings      = local.module_metadata.has_validation_warnings
+    has_warnings       = local.module_metadata.has_validation_warnings
   }
 }
 

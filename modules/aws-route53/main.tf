@@ -28,16 +28,16 @@ locals {
   all_records = flatten([
     for zone_key, zone in var.zones : [
       for idx, record in zone.records : {
-        key          = "${zone_key}--${record.name}--${record.type}--${idx}"
-        zone_key     = zone_key
-        zone_id      = aws_route53_zone.this[zone_key].zone_id
-        name         = record.name
-        type         = record.type
-        value        = record.value
-        ttl          = record.ttl
-        priority     = record.priority
-        alias        = record.alias
-        is_alias     = record.alias != null
+        key      = "${zone_key}--${record.name}--${record.type}--${idx}"
+        zone_key = zone_key
+        zone_id  = aws_route53_zone.this[zone_key].zone_id
+        name     = record.name
+        type     = record.type
+        value    = record.value
+        ttl      = record.ttl
+        priority = record.priority
+        alias    = record.alias
+        is_alias = record.alias != null
       }
     ]
   ])

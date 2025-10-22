@@ -19,7 +19,7 @@ terraform {
 # Configure Vercel provider
 provider "vercel" {
   api_token = var.vercel_api_token
-  team      = var.vercel_team_id  # Optional, for teams
+  team      = var.vercel_team_id # Optional, for teams
 }
 
 # ============================================================================
@@ -37,7 +37,7 @@ module "dns_from_json" {
 
   # General options
   enable_validation = true
-  default_ttl      = 60
+  default_ttl       = 60
 
   tags = {
     Environment = "example"

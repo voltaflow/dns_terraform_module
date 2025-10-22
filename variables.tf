@@ -26,17 +26,17 @@ variable "dns_zones" {
   type = map(object({
     domain = string
     records = list(object({
-      name    = string
-      type    = string
-      value   = string
-      ttl     = optional(number, 300)
+      name     = string
+      type     = string
+      value    = string
+      ttl      = optional(number, 300)
       priority = optional(number)
 
       # Provider-specific features
-      proxied = optional(bool, false)  # Cloudflare proxy mode
-      alias   = optional(object({       # AWS Route53 alias records
+      proxied = optional(bool, false) # Cloudflare proxy mode
+      alias = optional(object({       # AWS Route53 alias records
         name                   = string
-        zone_id               = string
+        zone_id                = string
         evaluate_target_health = optional(bool, false)
       }))
     }))

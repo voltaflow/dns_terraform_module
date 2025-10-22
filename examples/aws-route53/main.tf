@@ -36,17 +36,17 @@ provider "aws" {
 module "dns_from_json" {
   source = "../.."
 
-  provider_type    = "aws"
-  dns_config_file  = "${path.module}/dns-config.json"
+  provider_type   = "aws"
+  dns_config_file = "${path.module}/dns-config.json"
 
   # AWS-specific configuration
-  aws_region           = var.aws_region
-  aws_force_destroy    = var.aws_force_destroy
+  aws_region            = var.aws_region
+  aws_force_destroy     = var.aws_force_destroy
   aws_delegation_set_id = var.aws_delegation_set_id
 
   # General options
   enable_validation = true
-  default_ttl      = 300
+  default_ttl       = 300
 
   tags = {
     Environment = "example"
