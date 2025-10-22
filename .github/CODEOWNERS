@@ -1,0 +1,40 @@
+# ============================================================================
+# CODEOWNERS
+# ============================================================================
+# These owners will be the default owners for everything in the repo.
+# Unless a later match takes precedence, they will be requested for
+# review when someone opens a pull request.
+# ============================================================================
+
+# Default owners for everything in the repo
+* @c0305
+
+# Documentation
+*.md @c0305
+/docs/ @c0305
+
+# GitHub Actions and CI/CD
+/.github/ @c0305
+/.github/workflows/ @c0305
+
+# Terraform configuration
+*.tf @c0305
+*.tfvars @c0305
+
+# AWS Route53 module
+/modules/aws-route53/ @c0305
+
+# Cloudflare module
+/modules/cloudflare/ @c0305
+
+# Vercel module
+/modules/vercel/ @c0305
+
+# Examples
+/examples/ @c0305
+
+# Scripts
+/scripts/ @c0305
+
+# JSON Schema
+/schemas/ @c0305

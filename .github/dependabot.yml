@@ -1,0 +1,63 @@
+# ============================================================================
+# DEPENDABOT CONFIGURATION
+# ============================================================================
+# Automatically updates GitHub Actions to their latest versions
+# ============================================================================
+
+version: 2
+
+updates:
+  # GitHub Actions updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
+  # Terraform updates (if using modules from registry)
+  - package-ecosystem: "terraform"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "terraform"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
+  # Terraform examples
+  - package-ecosystem: "terraform"
+    directory: "/examples/aws-route53"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "examples"
+
+  - package-ecosystem: "terraform"
+    directory: "/examples/cloudflare"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "examples"
+
+  - package-ecosystem: "terraform"
+    directory: "/examples/vercel"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "examples"
