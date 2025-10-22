@@ -1,5 +1,12 @@
 # Multi-Provider DNS Terraform Module
 
+[![Terraform Validation](https://github.com/c0305/dns_terraform_module/actions/workflows/validate.yml/badge.svg)](https://github.com/c0305/dns_terraform_module/actions/workflows/validate.yml)
+[![Tests](https://github.com/c0305/dns_terraform_module/actions/workflows/test.yml/badge.svg)](https://github.com/c0305/dns_terraform_module/actions/workflows/test.yml)
+[![Lint & Security](https://github.com/c0305/dns_terraform_module/actions/workflows/lint.yml/badge.svg)](https://github.com/c0305/dns_terraform_module/actions/workflows/lint.yml)
+[![Documentation](https://github.com/c0305/dns_terraform_module/actions/workflows/docs.yml/badge.svg)](https://github.com/c0305/dns_terraform_module/actions/workflows/docs.yml)
+[![Release](https://github.com/c0305/dns_terraform_module/actions/workflows/release.yml/badge.svg)](https://github.com/c0305/dns_terraform_module/actions/workflows/release.yml)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A robust and flexible Terraform module for managing DNS zones and records across multiple providers with a unified interface. Simplifies provider migration without rewriting your entire configuration.
 
 ## Features
@@ -442,15 +449,103 @@ A: DNSSEC must be configured manually in each provider after deployment.
 **Q: What if I delete the state file?**
 A: Use `terraform import` to re-import resources. Export scripts help rebuild configuration.
 
+## CI/CD Pipeline
+
+This repository includes a comprehensive CI/CD pipeline with the following workflows:
+
+### 🔍 Validation Workflow
+- **Runs on**: Pull requests and push to main
+- **What it does**:
+  - Terraform formatting check (`terraform fmt`)
+  - Terraform validation for root module, submodules, and examples
+  - JSON file validation
+  - File quality checks (trailing whitespace, newlines at EOF)
+- **Badge**: [![Terraform Validation](https://github.com/c0305/dns_terraform_module/actions/workflows/validate.yml/badge.svg)](https://github.com/c0305/dns_terraform_module/actions/workflows/validate.yml)
+
+### 🧪 Testing Workflow
+- **Runs on**: Pull requests and push to main
+- **What it does**:
+  - Terraform plan tests with multiple Terraform versions (1.3.0, 1.5.0, latest)
+  - JSON schema validation with Python
+  - Module integration tests
+  - Bash script syntax and ShellCheck analysis
+  - Terraform compliance testing
+- **Badge**: [![Tests](https://github.com/c0305/dns_terraform_module/actions/workflows/test.yml/badge.svg)](https://github.com/c0305/dns_terraform_module/actions/workflows/test.yml)
+
+### 🔒 Linting & Security Workflow
+- **Runs on**: Pull requests and push to main
+- **What it does**:
+  - TFLint for Terraform best practices
+  - TFSec for security scanning
+  - Checkov for additional security checks
+  - ShellCheck for bash scripts
+  - Pylint for Python scripts
+  - Markdown and YAML linting
+- **Badge**: [![Lint & Security](https://github.com/c0305/dns_terraform_module/actions/workflows/lint.yml/badge.svg)](https://github.com/c0305/dns_terraform_module/actions/workflows/lint.yml)
+
+### 📝 Documentation Workflow
+- **Runs on**: Pull requests and push to main
+- **What it does**:
+  - Auto-generates terraform-docs for all modules
+  - Validates JSON schema
+  - Checks documentation links
+  - Generates changelog previews for PRs
+  - Verifies documentation coverage
+- **Badge**: [![Documentation](https://github.com/c0305/dns_terraform_module/actions/workflows/docs.yml/badge.svg)](https://github.com/c0305/dns_terraform_module/actions/workflows/docs.yml)
+
+### 🚀 Release Workflow
+- **Runs on**: Push to main
+- **What it does**:
+  - Analyzes commits using conventional commits
+  - Automatically bumps version (major/minor/patch)
+  - Generates changelogs
+  - Creates GitHub releases
+  - Updates Terraform Registry
+- **Badge**: [![Release](https://github.com/c0305/dns_terraform_module/actions/workflows/release.yml/badge.svg)](https://github.com/c0305/dns_terraform_module/actions/workflows/release.yml)
+
+### Conventional Commits
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning:
+
+- `feat:` - New feature (minor version bump)
+- `fix:` - Bug fix (patch version bump)
+- `docs:` - Documentation changes (patch version bump)
+- `refactor:` - Code refactoring (patch version bump)
+- `perf:` - Performance improvements (patch version bump)
+- `test:` - Test changes (no version bump)
+- `chore:` - Maintenance tasks (no version bump)
+- `BREAKING CHANGE:` - Breaking changes (major version bump)
+
+**Example:**
+```bash
+git commit -m "feat: add support for Cloudflare Workers routes"
+git commit -m "fix: correct TTL validation for MX records"
+git commit -m "docs: update migration guide with rollback instructions"
+```
+
 ## Contributing
 
-Contributions are welcome:
+Contributions are welcome! Please follow these guidelines:
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/new-feature`)
-3. Commit changes (`git commit -am 'Add new feature'`)
-4. Push to branch (`git push origin feature/new-feature`)
-5. Create a Pull Request
+3. Make your changes following the code style
+4. Use conventional commits (`feat:`, `fix:`, `docs:`, etc.)
+5. Ensure all workflows pass:
+   - Terraform validation
+   - Tests
+   - Linting and security scans
+   - Documentation generation
+6. Push to your branch (`git push origin feature/new-feature`)
+7. Create a Pull Request using the provided template
+
+All pull requests will automatically run the CI/CD pipeline. Please ensure:
+- Code is properly formatted (`terraform fmt`)
+- Tests pass locally
+- Documentation is updated
+- Commit messages follow conventional commits format
+
+See [Pull Request Template](.github/pull_request_template.md) for more details.
 
 ## License
 
