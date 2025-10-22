@@ -45,7 +45,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate docs for root module
-        uses: terraform-docs/gh-actions@v1.1.0
+        uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: .
           output-file: README.md
@@ -54,7 +54,7 @@ jobs:
           config-file: .terraform-docs.yml
 
       - name: Generate docs for AWS Route53 submodule
-        uses: terraform-docs/gh-actions@v1.1.0
+        uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: modules/aws-route53
           output-file: README.md
@@ -62,7 +62,7 @@ jobs:
           git-push: false
 
       - name: Generate docs for Cloudflare submodule
-        uses: terraform-docs/gh-actions@v1.1.0
+        uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: modules/cloudflare
           output-file: README.md
@@ -70,7 +70,7 @@ jobs:
           git-push: false
 
       - name: Generate docs for Vercel submodule
-        uses: terraform-docs/gh-actions@v1.1.0
+        uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: modules/vercel
           output-file: README.md
