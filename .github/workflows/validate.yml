@@ -199,20 +199,26 @@ jobs:
 
     steps:
       - name: Check validation results
+        env:
+          FORMAT_RESULT: ${{ needs.format.result }}
+          ROOT_RESULT: ${{ needs.validate-root.result }}
+          SUBMODULES_RESULT: ${{ needs.validate-submodules.result }}
+          EXAMPLES_RESULT: ${{ needs.validate-examples.result }}
+          FILES_RESULT: ${{ needs.file-checks.result }}
         run: |
           echo "## Validation Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Format: ${{ needs.format.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Root Module: ${{ needs.validate-root.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Submodules: ${{ needs.validate-submodules.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Examples: ${{ needs.validate-examples.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- File Checks: ${{ needs.file-checks.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Format: $FORMAT_RESULT" >> $GITHUB_STEP_SUMMARY
+          echo "- Root Module: $ROOT_RESULT" >> $GITHUB_STEP_SUMMARY
+          echo "- Submodules: $SUBMODULES_RESULT" >> $GITHUB_STEP_SUMMARY
+          echo "- Examples: $EXAMPLES_RESULT" >> $GITHUB_STEP_SUMMARY
+          echo "- File Checks: $FILES_RESULT" >> $GITHUB_STEP_SUMMARY
 
-          if [[ "${{ needs.format.result }}" != "success" ]] || \
-             [[ "${{ needs.validate-root.result }}" != "success" ]] || \
-             [[ "${{ needs.validate-submodules.result }}" != "success" ]] || \
-             [[ "${{ needs.validate-examples.result }}" != "success" ]] || \
-             [[ "${{ needs.file-checks.result }}" != "success" ]]; then
+          if [ "$FORMAT_RESULT" != "success" ] || \
+             [ "$ROOT_RESULT" != "success" ] || \
+             [ "$SUBMODULES_RESULT" != "success" ] || \
+             [ "$EXAMPLES_RESULT" != "success" ] || \
+             [ "$FILES_RESULT" != "success" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "❌ **Validation failed! Please review the errors above.**" >> $GITHUB_STEP_SUMMARY
             exit 1

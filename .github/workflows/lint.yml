@@ -226,29 +226,35 @@ jobs:
 
     steps:
       - name: Generate security summary
+        env:
+          TFLINT_RESULT: ${{ needs.tflint.result }}
+          TFSEC_RESULT: ${{ needs.tfsec.result }}
+          CHECKOV_RESULT: ${{ needs.checkov.result }}
+          SHELLCHECK_RESULT: ${{ needs.shellcheck.result }}
+          PYLINT_RESULT: ${{ needs.pylint.result }}
         run: |
           echo "## Security Scan Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Tool | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| TFLint | ${{ needs.tflint.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| TFSec | ${{ needs.tfsec.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Checkov | ${{ needs.checkov.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| ShellCheck | ${{ needs.shellcheck.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Pylint | ${{ needs.pylint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TFLint | $TFLINT_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| TFSec | $TFSEC_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Checkov | $CHECKOV_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| ShellCheck | $SHELLCHECK_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pylint | $PYLINT_RESULT |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Only fail on critical failures (tflint, shellcheck, pylint)
-          if [[ "${{ needs.tflint.result }}" == "failure" ]] || \
-             [[ "${{ needs.shellcheck.result }}" == "failure" ]] || \
-             [[ "${{ needs.pylint.result }}" == "failure" ]]; then
+          if [ "$TFLINT_RESULT" = "failure" ] || \
+             [ "$SHELLCHECK_RESULT" = "failure" ] || \
+             [ "$PYLINT_RESULT" = "failure" ]; then
             echo "❌ **Critical linting failures detected!**" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
           # Security scans are informational
-          if [[ "${{ needs.tfsec.result }}" == "failure" ]] || \
-             [[ "${{ needs.checkov.result }}" == "failure" ]]; then
+          if [ "$TFSEC_RESULT" = "failure" ] || \
+             [ "$CHECKOV_RESULT" = "failure" ]; then
             echo "⚠️  **Security issues detected - please review**" >> $GITHUB_STEP_SUMMARY
           else
             echo "✅ **All security scans passed!**" >> $GITHUB_STEP_SUMMARY

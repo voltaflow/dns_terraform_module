@@ -312,20 +312,26 @@ jobs:
 
     steps:
       - name: Generate test summary
+        env:
+          TERRAFORM_PLAN_RESULT: ${{ needs.terraform-plan.result }}
+          JSON_SCHEMA_RESULT: ${{ needs.json-schema.result }}
+          MODULE_INTEGRATION_RESULT: ${{ needs.module-integration.result }}
+          SCRIPTS_TEST_RESULT: ${{ needs.scripts-test.result }}
+          COMPLIANCE_RESULT: ${{ needs.compliance.result }}
         run: |
           echo "## Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Terraform Plan: ${{ needs.terraform-plan.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- JSON Schema: ${{ needs.json-schema.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Module Integration: ${{ needs.module-integration.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Scripts Test: ${{ needs.scripts-test.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Compliance: ${{ needs.compliance.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Terraform Plan: $TERRAFORM_PLAN_RESULT" >> $GITHUB_STEP_SUMMARY
+          echo "- JSON Schema: $JSON_SCHEMA_RESULT" >> $GITHUB_STEP_SUMMARY
+          echo "- Module Integration: $MODULE_INTEGRATION_RESULT" >> $GITHUB_STEP_SUMMARY
+          echo "- Scripts Test: $SCRIPTS_TEST_RESULT" >> $GITHUB_STEP_SUMMARY
+          echo "- Compliance: $COMPLIANCE_RESULT" >> $GITHUB_STEP_SUMMARY
 
           # Don't fail if compliance fails (it's informational)
-          if [[ "${{ needs.terraform-plan.result }}" == "failure" ]] || \
-             [[ "${{ needs.json-schema.result }}" == "failure" ]] || \
-             [[ "${{ needs.module-integration.result }}" == "failure" ]] || \
-             [[ "${{ needs.scripts-test.result }}" == "failure" ]]; then
+          if [ "$TERRAFORM_PLAN_RESULT" = "failure" ] || \
+             [ "$JSON_SCHEMA_RESULT" = "failure" ] || \
+             [ "$MODULE_INTEGRATION_RESULT" = "failure" ] || \
+             [ "$SCRIPTS_TEST_RESULT" = "failure" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "❌ **Some tests failed! Please review the errors above.**" >> $GITHUB_STEP_SUMMARY
             exit 1

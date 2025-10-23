@@ -266,20 +266,25 @@ jobs:
 
     steps:
       - name: Generate documentation summary
+        env:
+          TERRAFORM_DOCS_RESULT: ${{ needs.terraform-docs.result }}
+          VALIDATE_SCHEMA_RESULT: ${{ needs.validate-schema.result }}
+          CHECK_LINKS_RESULT: ${{ needs.check-links.result }}
+          DOC_COVERAGE_RESULT: ${{ needs.doc-coverage.result }}
         run: |
           echo "## Documentation Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Terraform Docs | ${{ needs.terraform-docs.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| JSON Schema | ${{ needs.validate-schema.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Link Check | ${{ needs.check-links.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Doc Coverage | ${{ needs.doc-coverage.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Terraform Docs | $TERRAFORM_DOCS_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| JSON Schema | $VALIDATE_SCHEMA_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Link Check | $CHECK_LINKS_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Doc Coverage | $DOC_COVERAGE_RESULT |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [[ "${{ needs.terraform-docs.result }}" != "success" ]] || \
-             [[ "${{ needs.validate-schema.result }}" != "success" ]] || \
-             [[ "${{ needs.doc-coverage.result }}" != "success" ]]; then
+          if [ "$TERRAFORM_DOCS_RESULT" != "success" ] || \
+             [ "$VALIDATE_SCHEMA_RESULT" != "success" ] || \
+             [ "$DOC_COVERAGE_RESULT" != "success" ]; then
             echo "❌ **Documentation checks failed!**" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
