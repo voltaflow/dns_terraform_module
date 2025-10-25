@@ -32,6 +32,8 @@ jobs:
   format:
     name: Check Terraform Formatting
     runs-on: ubuntu-latest
+    # Skip if commit message contains [skip ci] or [ci skip]
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]') }}
 
     steps:
       - name: Checkout code
@@ -69,6 +71,7 @@ jobs:
   validate-root:
     name: Validate Root Module
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]') }}
 
     strategy:
       matrix:
@@ -95,6 +98,7 @@ jobs:
   validate-submodules:
     name: Validate Submodules
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]') }}
 
     strategy:
       matrix:
@@ -124,6 +128,7 @@ jobs:
   validate-examples:
     name: Validate Examples
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]') }}
 
     strategy:
       matrix:
@@ -152,6 +157,7 @@ jobs:
   file-checks:
     name: Additional File Checks
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]') }}
 
     steps:
       - name: Checkout code
@@ -195,7 +201,7 @@ jobs:
     name: Validation Summary
     runs-on: ubuntu-latest
     needs: [format, validate-root, validate-submodules, validate-examples, file-checks]
-    if: always()
+    if: ${{ always() && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]') }}
 
     steps:
       - name: Check validation results
