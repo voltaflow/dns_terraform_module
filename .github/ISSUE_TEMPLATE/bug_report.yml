@@ -1,0 +1,128 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[BUG] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this bug! Please fill out the information below to help us resolve it quickly.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Tell us what happened
+    validations:
+      required: true
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Provider
+      description: Which DNS provider is affected?
+      options:
+        - AWS Route53
+        - Cloudflare
+        - Vercel
+        - All providers
+        - Not provider-specific
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Configure module with...
+        2. Run terraform apply...
+        3. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: Describe the expected outcome
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe what actually occurred
+    validations:
+      required: true
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Terraform Configuration
+      description: Please provide relevant Terraform configuration (sanitize sensitive data)
+      render: hcl
+      placeholder: |
+        module "dns" {
+          source = "github.com/voltaflow/dns_terraform_module"
+          # ... your configuration
+        }
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs
+      description: Please provide relevant error messages or logs
+      render: shell
+      placeholder: Paste error logs here
+
+  - type: input
+    id: module-version
+    attributes:
+      label: Module Version
+      description: Which version of the module are you using?
+      placeholder: v1.0.0 or main branch commit SHA
+    validations:
+      required: true
+
+  - type: input
+    id: terraform-version
+    attributes:
+      label: Terraform Version
+      description: Output of `terraform version`
+      placeholder: Terraform v1.5.0
+    validations:
+      required: true
+
+  - type: input
+    id: provider-version
+    attributes:
+      label: Provider Version
+      description: Version of AWS/Cloudflare/Vercel provider
+      placeholder: aws v5.0.0, cloudflare v4.15.0, vercel v1.0.0
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: Any additional information that might help
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues to make sure this is not a duplicate
+          required: true
+        - label: I have provided all required information above
+          required: true
+        - label: I have sanitized any sensitive information from configurations and logs
+          required: true

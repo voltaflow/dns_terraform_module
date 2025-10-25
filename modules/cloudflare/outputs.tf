@@ -21,7 +21,7 @@ output "zones" {
     k => {
       zone_id          = zone.id
       name_servers     = zone.name_servers
-      domain           = zone.zone
+      domain           = zone.name
       status           = zone.status
       verification_key = zone.verification_key
     }

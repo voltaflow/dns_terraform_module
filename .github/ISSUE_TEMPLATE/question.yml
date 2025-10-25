@@ -1,0 +1,83 @@
+name: Question or Support
+description: Ask a question or get help using the module
+title: "[QUESTION] "
+labels: ["question", "help wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question? We're here to help! Please provide details below.
+        
+        **Note**: For bug reports, please use the Bug Report template instead.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      description: What is your question about?
+      options:
+        - Getting Started
+        - Configuration
+        - Provider-specific (AWS Route53)
+        - Provider-specific (Cloudflare)
+        - Provider-specific (Vercel)
+        - Migration between providers
+        - Best practices
+        - CI/CD integration
+        - Troubleshooting
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What do you need help with?
+      placeholder: I'm trying to... How do I...?
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What Have You Tried?
+      description: What have you already attempted?
+      placeholder: I tried... I looked at... I expected...
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Relevant Configuration
+      description: Share relevant parts of your configuration (sanitize sensitive data)
+      render: hcl
+      placeholder: |
+        module "dns" {
+          # your configuration
+        }
+
+  - type: input
+    id: module-version
+    attributes:
+      label: Module Version
+      description: Which version are you using?
+      placeholder: v1.0.0 or main
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other information that might help answer your question
+      placeholder: Environment details, constraints, goals...
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have read the README and relevant documentation
+          required: true
+        - label: I have searched for similar questions in existing issues
+          required: true
+        - label: I have checked the examples directory
+          required: false

@@ -1,0 +1,92 @@
+name: Documentation Issue
+description: Report an issue with documentation or request improvements
+title: "[DOCS] "
+labels: ["documentation", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation!
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation needs attention?
+      options:
+        - Main README
+        - Submodule README (AWS Route53)
+        - Submodule README (Cloudflare)
+        - Submodule README (Vercel)
+        - Examples
+        - Code comments
+        - API documentation
+        - Wiki/Guides
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What kind of documentation issue is this?
+      options:
+        - Missing information
+        - Incorrect information
+        - Unclear/confusing
+        - Outdated
+        - Typo/grammar
+        - Enhancement suggestion
+        - New guide needed
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current Documentation
+      description: Quote or describe the current documentation that needs attention
+      placeholder: The current documentation says...
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: What's Wrong or Missing?
+      description: Explain the issue with the documentation
+      placeholder: This is confusing because...
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Improvement
+      description: How should the documentation be improved?
+      placeholder: It should instead say... or include...
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Document Location
+      description: File path or URL where the documentation is located
+      placeholder: README.md line 123, or https://github.com/...
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other information that would help
+      placeholder: Screenshots, links, examples...
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have checked that this documentation issue hasn't been reported
+          required: true
+        - label: I am willing to submit a PR to fix this documentation issue
+          required: false

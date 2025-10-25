@@ -49,9 +49,9 @@ locals {
 resource "vercel_dns_record" "this" {
   for_each = local.records_map
 
-  domain  = each.value.domain
-  name    = each.value.name
-  type    = each.value.type
+  domain = each.value.domain
+  name   = each.value.name
+  type   = each.value.type
   # For MX records, include priority in value: "10 mail.example.com"
   value   = each.value.type == "MX" && each.value.priority != null ? "${each.value.priority} ${each.value.value}" : each.value.value
   ttl     = each.value.ttl

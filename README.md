@@ -35,7 +35,7 @@ A robust and flexible Terraform module for managing DNS zones and records across
 
 ```hcl
 module "dns" {
-  source = "github.com/your-org/dns-terraform-module"
+  source = "github.com/voltaflow/dns_terraform_module"
 
   provider_type    = "cloudflare"
   dns_config_file  = "${path.module}/dns-config.json"
@@ -553,9 +553,9 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ## Support
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/your-org/dns-terraform-module/issues)
-- 📖 **Documentation**: [Wiki](https://github.com/your-org/dns-terraform-module/wiki)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/your-org/dns-terraform-module/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/voltaflow/dns_terraform_module/issues)
+- 📖 **Documentation**: [Wiki](https://github.com/voltaflow/dns_terraform_module/wiki)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/voltaflow/dns_terraform_module/discussions)
 
 ## Changelog
 
