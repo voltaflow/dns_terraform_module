@@ -101,7 +101,7 @@ jobs:
 
       - name: Create PR comment with docs diff
         if: steps.docs-changes.outputs.changed == 'true' && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const diffOutput = require('child_process')
@@ -190,7 +190,7 @@ jobs:
 
       - name: Comment changelog preview on PR
         if: steps.changelog.outputs.changelog != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const changelog = `${{ steps.changelog.outputs.changelog }}`;
