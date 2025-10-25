@@ -572,3 +572,6 @@ See [CHANGELOG.md](CHANGELOG.md) for version history.
 ---
 
 Made with ❤️ to simplify DNS management with Terraform
+
+<!-- BEGIN_TF_DOCS -->
+<!-- END_TF_DOCS -->
